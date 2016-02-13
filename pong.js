@@ -4,6 +4,14 @@ var context = canvas.getContext('2d');
 var WIDTH   = 500;
 var HEIGHT  = 500;
 
+var keystate = {};
+var upArrow = 38;
+var downArrow = 40;
+
+var player1;
+var player2;
+var ball;
+
 canvas.width = WIDTH;
 canvas.height = HEIGHT;
 context.fillStyle = '#ffffff';
@@ -11,9 +19,6 @@ context.fillRect(0, 0, WIDTH, HEIGHT);
 document.body.appendChild(canvas);
 
 
-// Lots of repetition
-// Would like to teach them a better way
-// A factory constructor?
 function makePiece(x, y, w, h, color) {
     return {
         x: x,
@@ -23,40 +28,72 @@ function makePiece(x, y, w, h, color) {
         draw: function() {
             context.fillStyle = color;
             context.fillRect(this.x, this.y, this.width, this.height);
+        },
+        update: function() {
+          if (keystate[upArrow]) this.y -= 7;
+          if (keystate[downArrow]) this.y += 7;
         }
     }
 }
 
-var player1 = makePiece(20, 200, 20, 100, 'gray');
-var player2 = makePiece(460, 200, 20, 100, 'blue');
-var ball    = makePiece(240, 240, 20, 20, 'yellow');
-
 
 function init() {
-    player1.x = player1.width; // 20
-    player1.y = (HEIGHT - player1.height)/2; // 200
-    
-    player2.x = WIDTH - (player1.width + player2.width); // 460
-    player2.y = (HEIGHT - player2.height)/2; // 200
-    
-    ball.x = (WIDTH - ball.height)/2; //240
-    ball.y = (HEIGHT - ball.width)/2; //240
+  player1 = makePiece(20, 200, 20, 100, 'black');
+  player2 = makePiece(460, 200, 20, 100, 'black');
+  ball    = makePiece(240, 240, 20, 20, 'red');
 }
 
+
 function draw() {
+    // Save the canvas at it's starting point
+    context.fillRect(0, 0, WIDTH, HEIGHT);
+    context.save()
+  
     player1.draw();
     player2.draw();
+  
+    drawLine();
     ball.draw();
+  
+    // Restore Canvas to original state
+    context.restore()
+}
+
+
+function drawLine() {
+    context.fillStyle = 'black';
+    var w = 4;
+    var x = (WIDTH - w) * 0.5;
+    var y = 0;
+    var step = HEIGHT / 15;
+
+    while (y < HEIGHT) {
+      context.fillRect(x, y + step * 0.25, w, step * 0.5);
+      y += step;
+    }
+}
+
+
+function registerEvents() {
+  $(document).keydown(function(evt) {
+    keystate[evt.keyCode] = true;
+  });
+  
+  $(document).keyup(function(evt) {
+    delete keystate[evt.keyCode];
+  });
 }
 
 
 // Run the game
 function run() {
-    // Initialize the game elements
-    //init();
+    // Register events and initialize the game elements
+    registerEvents()
+    init();
     
     // Run the loop!
     var loop = function() {
+        player1.update();
         draw();
         window.requestAnimationFrame(loop, canvas);
     }
@@ -76,53 +113,6 @@ run();
 
 
 
-
-
-
-
-
-// Tutorial Example
-
-//var player = {
-//    x: null,
-//    y: null,
-//    width: 20,
-//    height: 100,
-//    draw: function() {
-//        context.fillStyle = 'blue';
-//        context.fillRect(this.x, this.y, this.width, this.height);
-//    }
-//}
-//
-//var ai = {
-//    x: null,
-//    y: null,
-//    width: 20,
-//    height: 100,
-//    draw: function() {
-//        context.fillStyle = 'red';
-//        context.fillRect(this.x, this.y, this.width, this.height);
-//    }
-//}
-//
-//var ball = {
-//    x: null,
-//    y: null,
-//    side: 20,
-//    draw: function() {
-//        context.fillStyle = 'green';
-//        context.fillRect(this.x, this.y, this.side, this.side);
-//    }
-//}
-
-
-//function init() {
-//    player1.x = player.width;
-//    player1.y = (HEIGHT - player.height)/2;
-//    
-//    player2.x = WIDTH - (player.width + ai.width);
-//    player2.y = (HEIGHT - ai.height)/2;
-//    
-//    ball.x = (WIDTH - ball.side)/2;
-//    ball.y = (HEIGHT - ball.side)/2;
-//}
+// https://www.youtube.com/watch?v=KApAJhkkqkA
+// https://github.com/maxwihlborg/youtube-tutorials/tree/master/pong
+// http://html5.litten.com/understanding-save-and-restore-for-the-canvas-context/
