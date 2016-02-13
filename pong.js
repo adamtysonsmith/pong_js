@@ -55,7 +55,7 @@ function draw() {
     drawLine();
     ball.draw();
   
-    // Restore Canvas to original state
+    // Restore Canvas to previous state
     context.restore()
 }
 
